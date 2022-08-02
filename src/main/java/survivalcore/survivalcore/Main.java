@@ -13,17 +13,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.bukkit.scoreboard.*;
-import survivalcore.survivalcore.Commands.MessageCommand;
-import survivalcore.survivalcore.Commands.StaffChat;
-import survivalcore.survivalcore.Commands.StaffMode;
-import survivalcore.survivalcore.Commands.StaffRandomTeleport;
+import survivalcore.survivalcore.Commands.*;
 
-import survivalcore.survivalcore.Events.CancellingCreepers;
-import survivalcore.survivalcore.Events.ChangingGamemode;
-import survivalcore.survivalcore.Events.ChatFormatting;
-import survivalcore.survivalcore.Events.JoiningMessages;
+import survivalcore.survivalcore.Events.*;
+import survivalcore.survivalcore.Extensions.DataManager;
 
 public final class Main extends JavaPlugin {
+
+    public DataManager data;
     public static Main instance;
 
     public static HashSet<UUID> InStaff = new HashSet<>();
@@ -31,19 +28,24 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        //Instance of my plugin
+        getDataFolder().mkdir();
+
+        //Instances of main class and data manager
         instance = this;
+        this.data = new DataManager(this);
 
         //Events registered
         getServer().getPluginManager().registerEvents(new ChangingGamemode(), this);
         getServer().getPluginManager().registerEvents(new JoiningMessages(), this);
         getServer().getPluginManager().registerEvents(new CancellingCreepers(), this);
         getServer().getPluginManager().registerEvents(new ChatFormatting(), this);
+        getServer().getPluginManager().registerEvents(new DeathCounter(), this);
 
         //Commands registered
         getCommand("t").setExecutor(new StaffRandomTeleport());
         getCommand("msg").setExecutor(new MessageCommand());
         getCommand("w").setExecutor(new MessageCommand());
+        getCommand("gd").setExecutor(new GetDeaths());
         getCommand("reply").setExecutor(new MessageCommand());
         getCommand("r").setExecutor(new MessageCommand());
         getCommand("staffmode").setExecutor(new StaffMode());
@@ -83,8 +85,8 @@ public final class Main extends JavaPlugin {
                     Score Time = objective.getScore("Time: " + ChatColor.GREEN + time.format(formatter));
                     Time.setScore(6);
 
-                    Score level = objective.getScore("Level: " + ChatColor.GREEN + player.getLevel());
-                    level.setScore(3);
+                    Score deaths = objective.getScore("Deaths: " + ChatColor.GREEN + getDeaths(player));
+                    deaths.setScore(3);
 
                     Score blank2 = objective.getScore("");
                     blank2.setScore(1);
@@ -109,6 +111,16 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    public int getDeaths(Player player) {
+
+        if (this.data.getConfig().contains(player.getUniqueId().toString() + ".deaths")) {
+            int deaths = this.data.getConfig().getInt(player.getUniqueId().toString() + ".deaths");
+            return deaths;
+        } else {
+            return 0;
+        }
     }
 
     public static Main getInstance() {

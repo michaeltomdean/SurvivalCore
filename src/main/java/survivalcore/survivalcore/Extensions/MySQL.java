@@ -1,5 +1,6 @@
 //SQL Connection method taken from stackoverflow
 //https://stackoverflow.com/questions/34856113/implementing-sql-in-a-bukkit-spigot-plugin
+//WIP and most likely wont be done for some time
 
 
 package survivalcore.survivalcore.Extensions;
